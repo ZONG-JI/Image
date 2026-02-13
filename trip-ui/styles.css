@@ -1,0 +1,632 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+body {
+  background: #f5f6fa;
+  color: #1f2937;
+}
+
+:root {
+  /* 左侧“每日行程”侧栏宽度 */
+  --day-sidebar-width: clamp(240px, 22vw, 280px);
+  /* 地图列（左列）最小宽度：调大=地图更不容易变窄 */
+  --map-col-min-width: 750px;
+  /* 右侧信息列（时间轴/美食/天气）固定宽度：调小=地图变宽；调大=右侧变宽 */
+  --right-panel-width: 650px;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #38bdf8 100%);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(29, 78, 216, 0.25);
+}
+
+.header h1 {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.header p {
+  opacity: 0.9;
+  font-size: 14px;
+}
+
+.route-overview,
+.route-notes {
+  max-width: 1200px;
+  line-height: 1.45;
+}
+
+.route-notes {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.header-note {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: right;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.main {
+  flex: 1;
+  display: grid;
+  /* 左侧“每日行程”调窄一些，给右侧内容留空间 */
+  grid-template-columns: var(--day-sidebar-width) 1fr;
+  gap: 12px;
+  /* 缩小 header 与 main 的垂直间距 */
+  padding: 8px 28px 18px;
+}
+
+.sidebar {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar-title h2 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.sidebar-title p {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+  max-height: calc(100vh - 210px);
+}
+
+.day-card {
+  background: #f8fafc;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.day-card:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.day-card.active {
+  border-color: #2563eb;
+  background: #dbeafe;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+}
+
+.day-card h3 {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.day-card p {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px 22px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.info-main h3 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.info-main p {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.info-meta {
+  display: flex;
+  gap: 26px;
+  text-align: right;
+}
+
+.info-meta .label {
+  display: block;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.info-meta strong {
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.map {
+  flex: 1;
+  width: 100%;
+  min-height: 520px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+.map-layout {
+  display: grid;
+  /* 右侧（时间轴/美食/天气）更宽，地图列更窄 */
+  grid-template-columns: minmax(var(--map-col-min-width), 1fr) var(--right-panel-width);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.map-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  height: 100%;
+}
+
+/* 让“住宿与美食推荐”优先占用右侧剩余空间 */
+.side-stack .stay-food-card {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.weather {
+  display: grid;
+  gap: 10px;
+}
+
+.weather-muted {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.weather-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.weather-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.weather-temp {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.weather-desc {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.weather-meta {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.weather-forecast {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+}
+
+.weather-forecast li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.weather-forecast .k {
+  color: #6b7280;
+}
+
+.weather-forecast .v {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.weather {
+  display: grid;
+  gap: 10px;
+}
+
+.weather-muted {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.weather-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.weather-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.weather-temp {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.weather-desc {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.weather-meta {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.weather-forecast {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+}
+
+.weather-forecast li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.weather-forecast .k {
+  color: #6b7280;
+}
+
+.weather-forecast .v {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.marker-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  border: 2px solid #ffffff;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+
+.details-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.08);
+}
+
+.details-card h4 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.details-card.full-span {
+  grid-column: 1 / -1;
+}
+
+.helper-text {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 10px;
+}
+
+.timeline {
+  list-style: none;
+  display: grid;
+  gap: 3px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+.timeline-time {
+  font-weight: 700;
+  color: #2563eb;
+  font-size: 12px;
+}
+
+.timeline-content h5 {
+  font-size: 13px;
+  margin-bottom: 0;
+  line-height: 1.25;
+}
+
+.timeline-content p {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.gallery {
+  display: grid;
+  /* 固定三列：确保“一行最多 3 张”，其余用滚动查看 */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  /* 只露出第一行（最多 3 张），其余在容器内滚动 */
+  max-height: 176px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  overscroll-behavior: contain;
+}
+
+.gallery-card {
+  background: #f8fafc;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 15px 18px rgba(15, 23, 42, 0.08);
+}
+
+.gallery-card img {
+  width: 100%;
+  height: 125px;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-card .gallery-body {
+  padding: 10px 12px;
+}
+
+.gallery-card h5 {
+  font-size: 13px;
+  margin-bottom: 4px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gallery-card p {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.accordion {
+  display: grid;
+  gap: 10px;
+}
+
+.accordion details {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.accordion summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.accordion ul {
+  list-style: none;
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.accordion li::before {
+  content: "• ";
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.meal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.meal-grid details {
+  height: fit-content;
+}
+
+.food-place-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+  display: grid;
+  gap: 2px;
+}
+
+.food-place {
+  padding: 6px 6px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+.food-place::before {
+  content: "";
+}
+
+.food-link {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1d4ed8;
+  text-decoration: none;
+}
+
+.food-link:hover {
+  text-decoration: underline;
+}
+
+.food-meta {
+  margin-top: 2px;
+  font-size: 10px;
+  color: #6b7280;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+.food-note {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .meal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.food-fallback-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.food-fallback-list li::before {
+  content: "• ";
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 16px;
+  list-style: none;
+  font-size: 13px;
+  color: #374151;
+}
+
+.highlights li::before {
+  content: "• ";
+  color: #2563eb;
+  font-weight: 700;
+}
+
+@media (max-width: 960px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+
+  .map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .info-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .info-meta {
+    text-align: left;
+  }
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>欧洲自驾旅行可视化行程</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div>
+          <h1>欧洲自驾旅行 · 6/6 - 6/20</h1>
+        </div>
+        <div class="header-note">
+          <span>地图底座：OpenStreetMap</span>
+          <span>路线模式：自驾/步行/飞行</span>
+        </div>
+      </header>
+
+      <main class="main">
+        <aside class="sidebar">
+          <div class="sidebar-title">
+            <h2>每日行程</h2>
+            <p>点击天数查看路线</p>
+          </div>
+          <div id="day-list" class="day-list"></div>
+        </aside>
+
+        <section class="content">
+          <div class="info-card">
+            <div class="info-main">
+              <h3 id="day-title">请选择一天</h3>
+              <p id="day-summary">在左侧点击日期，查看当天行程详情与路线。</p>
+            </div>
+            <div class="info-meta">
+              <div>
+                <span class="label">距离</span>
+                <strong id="day-distance">—</strong>
+              </div>
+              <div>
+                <span class="label">时间</span>
+                <strong id="day-duration">—</strong>
+              </div>
+              <div>
+                <span class="label">交通</span>
+                <strong id="day-mode">—</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="map-layout">
+            <div class="map-column">
+              <div id="map" class="map"></div>
+              <div class="details-card">
+                <h4>景点图片</h4>
+                <div id="day-gallery" class="gallery"></div>
+              </div>
+            </div>
+
+            <div class="side-stack">
+              <div class="details-card">
+                <h4>路线时间轴</h4>
+                <ul id="day-timeline" class="timeline"></ul>
+              </div>
+
+              <div class="details-card stay-food-card">
+                <h4>美食推荐</h4>
+                <div id="day-details" class="accordion"></div>
+              </div>
+
+              <div class="details-card weather-card">
+                <h4>天气</h4>
+                <div id="day-weather" class="weather">
+                  <p class="weather-muted">选择左侧日期后加载当地天气。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./itinerary.js"></script>
+    <script src="./image-manifest.js"></script>
+    <script>
+      // 解决本地/静态预览时脚本缓存导致“刷新没反应”
+      // 同时兼容部分环境对 file://?v= 的兼容性差
+      (function () {
+        function loadScript(src) {
+          return new Promise(function (resolve, reject) {
+            var s = document.createElement("script");
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = reject;
+            document.body.appendChild(s);
+          });
+        }
+
+        function loadWithFallback(primary, fallback) {
+          return loadScript(primary).catch(function () {
+            return loadScript(fallback);
+          });
+        }
+
+        var v = Date.now();
+        // FOOD_RECS 失败也不阻塞 app.js（app.js 有 fallback）
+        loadWithFallback("./food-recs.js?v=" + v, "./food-recs.js")
+          .catch(function () {
+            return null;
+          })
+          .then(function () {
+            return loadWithFallback("./app.js?v=" + v, "./app.js").catch(function () {
+              return null;
+            });
+          });
+      })();
+    </script>
+  </body>
+</html>
